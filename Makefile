@@ -87,6 +87,7 @@ $(RAW_DATA)/merchants.csv:
 	kaggle competitions download elo-merchant-category-recommendation -f merchants.csv -p $(RAW_DATA)
 	unzip $@.zip -d $(RAW_DATA)
 	touch $@
+	rm $@.zip
 
 $(RAW_DATA)/new_merchant_transactions.csv:
 	kaggle competitions download elo-merchant-category-recommendation -f new_merchant_transactions.csv -p $(RAW_DATA)
