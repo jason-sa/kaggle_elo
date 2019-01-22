@@ -9,9 +9,6 @@ RAW_DATA = $(PROJECT_DIR)/data/raw
 PROJECT_NAME = kaggle_elo
 PYTHON_INTERPRETER = python3
 
-# ZIP_FILES := $(shell find $(RAW_DATA) -name "*.zip")
-# $(info zip files are $(ZIP_FILES))
-
 ifeq (,$(shell which conda))
 HAS_CONDA=False
 else
