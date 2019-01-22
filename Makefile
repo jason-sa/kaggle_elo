@@ -1,14 +1,16 @@
-.PHONY: clean data lint requirements sync_data_to_s3 sync_data_from_s3
+.PHONY: clean data lint requirements
 
 #################################################################################
 # GLOBALS                                                                       #
 #################################################################################
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
-PROFILE = default
+RAW_DATA = $(PROJECT_DIR)/data/raw
 PROJECT_NAME = kaggle_elo
 PYTHON_INTERPRETER = python3
+
+# ZIP_FILES := $(shell find $(RAW_DATA) -name "*.zip")
+# $(info zip files are $(ZIP_FILES))
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -26,7 +28,7 @@ requirements: test_environment
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
 ## Make Dataset
-data: requirements
+data: requirements unzip
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py
 
 ## Delete all compiled Python files
@@ -37,22 +39,6 @@ clean:
 ## Lint using flake8
 lint:
 	flake8 src
-
-## Upload Data to S3
-sync_data_to_s3:
-ifeq (default,$(PROFILE))
-	aws s3 sync data/ s3://$(BUCKET)/data/
-else
-	aws s3 sync data/ s3://$(BUCKET)/data/ --profile $(PROFILE)
-endif
-
-## Download Data from S3
-sync_data_from_s3:
-ifeq (default,$(PROFILE))
-	aws s3 sync s3://$(BUCKET)/data/ data/
-else
-	aws s3 sync s3://$(BUCKET)/data/ data/ --profile $(PROFILE)
-endif
 
 ## Set up python interpreter environment
 create_environment:
@@ -80,7 +66,51 @@ test_environment:
 # PROJECT RULES                                                                 #
 #################################################################################
 
+unzip: $(RAW_DATA)/train.csv \
+	   $(RAW_DATA)/historical_transactions.csv \
+	   $(RAW_DATA)/merchants.csv \
+	   $(RAW_DATA)/new_merchant_transactions.csv \
+	   $(RAW_DATA)/sample_submission.csv \
+	   $(RAW_DATA)/test.csv \
+	   $(RAW_DATA)/Data_Dictionary.xlsx
 
+$(RAW_DATA)/train.csv:
+	kaggle competitions download elo-merchant-category-recommendation -f train.csv -p $(RAW_DATA)
+	unzip $@.zip -d $(RAW_DATA)
+	touch $@
+	rm $@.zip
+
+$(RAW_DATA)/historical_transactions.csv:
+	kaggle competitions download elo-merchant-category-recommendation -f historical_transactions.csv -p $(RAW_DATA)
+	unzip $@.zip -d $(RAW_DATA)
+	touch $@
+	rm $@.zip
+
+$(RAW_DATA)/merchants.csv:
+	kaggle competitions download elo-merchant-category-recommendation -f merchants.csv -p $(RAW_DATA)
+	unzip $@.zip -d $(RAW_DATA)
+	touch $@
+
+$(RAW_DATA)/new_merchant_transactions.csv:
+	kaggle competitions download elo-merchant-category-recommendation -f new_merchant_transactions.csv -p $(RAW_DATA)
+	unzip $@.zip -d $(RAW_DATA)
+	touch $@
+	rm $@.zip
+
+$(RAW_DATA)/sample_submission.csv:
+	kaggle competitions download elo-merchant-category-recommendation -f sample_submission.csv -p $(RAW_DATA)
+	unzip $@.zip -d $(RAW_DATA)
+	touch $@
+	rm $@.zip
+
+$(RAW_DATA)/test.csv:
+	kaggle competitions download elo-merchant-category-recommendation -f test.csv -p $(RAW_DATA)
+	unzip $@.zip -d $(RAW_DATA)
+	touch $@
+	rm $@.zip
+
+$(RAW_DATA)/Data_Dictionary.xlsx:
+	kaggle competitions download elo-merchant-category-recommendation -f Data_Dictionary.xlsx -p $(RAW_DATA)
 
 #################################################################################
 # Self Documenting Commands                                                     #
